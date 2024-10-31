@@ -1,0 +1,84 @@
+{
+  "fileName": "Board.cpp",
+  "description": "This file contains the implementation of the drawing board for EDA software using wxWidgets.",
+  "components": {
+    "lines": {
+      "description": "Holds the drawn lines on the board.",
+      "type": "vector<pair<wxPoint, wxPoint>>"
+    },
+    "circles": {
+      "description": "Holds the drawn circles on the board.",
+      "type": "vector<tuple<wxPoint, int, int>>"
+    },
+    "stateFlags": {
+      "circleClicked": {
+        "type": "bool",
+        "description": "Indicates if the circle tool is selected."
+      },
+      "lineClicked": {
+        "type": "bool",
+        "description": "Indicates if the line tool is selected."
+      },
+      "lineStarted": {
+        "type": "bool",
+        "description": "Indicates if the line drawing has started."
+      }
+    },
+    "positions": {
+      "lineStartPos": {
+        "type": "wxPoint",
+        "description": "The starting position of the line."
+      },
+      "lineEndPos": {
+        "type": "wxPoint",
+        "description": "The ending position of the line."
+      },
+      "circlePos": {
+        "type": "wxPoint",
+        "description": "The position of the circle."
+      }
+    }
+  },
+  "functions": {
+    "onPaint": {
+      "description": "Handles the paint event to draw the grid, lines, and circles.",
+      "parameters": [
+        {
+          "name": "event",
+          "type": "wxPaintEvent"
+        }
+      ]
+    },
+    "DrawGrid": {
+      "description": "Draws a grid on the board.",
+      "parameters": [
+        {
+          "name": "gc",
+          "type": "wxGraphicsContext*"
+        },
+        {
+          "name": "gridSize",
+          "type": "int"
+        }
+      ]
+    },
+    "onLeftClick": {
+      "description": "Handles mouse left click events to place circles or lines.",
+      "parameters": [
+        {
+          "name": "event",
+          "type": "wxMouseEvent"
+        }
+      ]
+    },
+    "onMouseMove": {
+      "description": "Handles mouse movement events to update line and circle positions.",
+      "parameters": [
+        {
+          "name": "event",
+          "type": "wxMouseEvent"
+        }
+      ]
+    }
+  }
+}
