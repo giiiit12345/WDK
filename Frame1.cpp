@@ -2,12 +2,15 @@
 #include <wx/artprov.h>
 
 //用宏定义创建事件表
-BEGIN_EVENT_TABLE(Frame,wxFrame)
-    EVT_MENU(wxID_NEW,Frame::onNew)
-    EVT_MENU(wxID_EXIT,Frame::onQuit)
-    EVT_TOOL(wxID_HELP,Frame::onHelp)
-    EVT_TOOL(wxID_ANY+1, Frame::onCircle)
-    EVT_TOOL(wxID_ANY+2, Frame::onLine)
+BEGIN_EVENT_TABLE(Frame, wxFrame)
+EVT_MENU(wxID_NEW, Frame::onNew)
+EVT_MENU(wxID_EXIT, Frame::onQuit)
+EVT_TOOL(wxID_HELP, Frame::onHelp)
+EVT_TOOL(wxID_ANY + 1, Frame::onCircle)
+EVT_TOOL(wxID_ANY + 2, Frame::onLine)
+EVT_TOOL(wxID_ANY + 3, Frame::onResistor)
+EVT_TOOL(wxID_ANY + 4, Frame::onAndGate)
+EVT_TOOL(wxID_ANY + 5, Frame::onNotGate)
 END_EVENT_TABLE();
 
 Frame::Frame(wxWindow* parent,
@@ -64,10 +67,16 @@ Frame::Frame(wxWindow* parent,
     //Create quit tool
     toolBar->AddTool(wxID_EXIT, _("Quit"), wxArtProvider::GetBitmap("wxART_QUIT"));
 
-    toolBar->AddTool(wxID_ANY+1, _("Draw circle"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
-   
-    toolBar->AddTool(wxID_ANY+2, _("Draw line"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
-    
+    wxBitmap Bitmaps[3];
+    Bitmaps[0] = wxBitmap(andgate_xpm);
+    Bitmaps[1] = wxBitmap(notgate_xpm);
+    Bitmaps[2] = wxBitmap(resistor_xpm);
+    toolBar->AddTool(wxID_ANY + 1, _("Draw circle"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
+    toolBar->AddTool(wxID_ANY + 2, _("Draw line"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
+    toolBar->AddTool(wxID_ANY + 3, _("Draw resistor"), Bitmaps[2]);
+    toolBar->AddTool(wxID_ANY + 4, _("Draw andgate"), Bitmaps[0]);
+    toolBar->AddTool(wxID_ANY + 5, _("Draw notgate"), Bitmaps[1]);
+
     //可伸展的空间
     toolBar->AddStretchableSpace();
 
@@ -115,7 +124,7 @@ Frame::Frame(wxWindow* parent,
 
 
 //Event handling
-void Frame::onNew(wxCommandEvent& event) 
+void Frame::onNew(wxCommandEvent& event)
 {
     wxMessageBox("Frame::onNew");
     PushStatusText(_("Frame::onNew"));
@@ -143,6 +152,21 @@ void Frame::onCircle(wxCommandEvent& event)
 void Frame::onLine(wxCommandEvent& event)
 {
     board->lineClicked = true;
+}
+
+void Frame::onResistor(wxCommandEvent& event)
+{
+    board->resistorClicked = true;
+}
+
+void Frame::onAndGate(wxCommandEvent& event)
+{
+    board->andgateClicked = true;
+}
+
+void Frame::onNotGate(wxCommandEvent& event)
+{
+    board->notgateClicked = true;
 }
 
 void Frame::onQuit(wxCommandEvent& event)
