@@ -2,12 +2,18 @@
 #include <wx/artprov.h>
 
 //用宏定义创建事件表
-BEGIN_EVENT_TABLE(Frame,wxFrame)
-    EVT_MENU(wxID_NEW,Frame::onNew)
-    EVT_MENU(wxID_EXIT,Frame::onQuit)
-    EVT_TOOL(wxID_HELP,Frame::onHelp)
-    EVT_TOOL(wxID_ANY+1, Frame::onCircle)
-    EVT_TOOL(wxID_ANY+2, Frame::onLine)
+BEGIN_EVENT_TABLE(Frame, wxFrame)
+EVT_MENU(wxID_NEW, Frame::onNew)
+EVT_MENU(wxID_EXIT, Frame::onQuit)
+EVT_MENU(wxID_SAVE, Frame::onSave)
+EVT_TOOL(wxID_HELP, Frame::onHelp)
+EVT_TOOL(wxID_OPEN, Frame::OnOpenButtonClicked)
+//EVT_TOOL(wxID_ANY + 1, Frame::onCircle)
+EVT_TOOL(wxID_ANY + 2, Frame::onLine)
+EVT_TOOL(wxID_ANY + 3, Frame::onResistor)
+EVT_TOOL(wxID_ANY + 4, Frame::onAndGate)
+EVT_TOOL(wxID_ANY + 5, Frame::onNotGate)
+EVT_TOOL(wxID_ANY + 6, Frame::onOrGate)
 END_EVENT_TABLE();
 
 Frame::Frame(wxWindow* parent,
@@ -28,6 +34,13 @@ Frame::Frame(wxWindow* parent,
     //Custom wxMenuItem 自定义选项
     wxMenuItem* testItem = fileMenu->Append(wxID_ANY, _("&Test\tCtrl+T"));
     Bind(wxEVT_MENU, &Frame::onTest, this, testItem->GetId());
+
+    fileMenu->Append(wxID_SAVE, "Save\tCtrl-S", "Save the current file");
+
+    wxMenuItem* openItem = fileMenu->Append(wxID_OPEN, _("&Open\tCtrl+O"));
+    Bind(wxEVT_MENU, &Frame::OnOpenButtonClicked, this, wxID_OPEN);
+
+
 
     //Separator 分隔线
     fileMenu->AppendSeparator();
@@ -64,10 +77,40 @@ Frame::Frame(wxWindow* parent,
     //Create quit tool
     toolBar->AddTool(wxID_EXIT, _("Quit"), wxArtProvider::GetBitmap("wxART_QUIT"));
 
-    toolBar->AddTool(wxID_ANY+1, _("Draw circle"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
-   
-    toolBar->AddTool(wxID_ANY+2, _("Draw line"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
-    
+    wxBitmap Bitmaps[5];
+
+    Bitmaps[0] = wxBitmap(line_xpm);
+    wxImage image = Bitmaps[0].ConvertToImage();
+    image.Rescale(image.GetWidth() * 0.08, image.GetHeight() * 0.08);
+    wxBitmap lineBitmap = wxBitmap(image);
+
+    Bitmaps[1] = wxBitmap(resistor_xpm);
+    image = Bitmaps[1].ConvertToImage();
+    image.Rescale(image.GetWidth() * 0.08, image.GetHeight() * 0.08);
+    wxBitmap resistorBitmap = wxBitmap(image);
+
+    Bitmaps[2] = wxBitmap(andgate_xpm);
+    image = Bitmaps[2].ConvertToImage();
+    image.Rescale(image.GetWidth() * 0.08, image.GetHeight() * 0.08);
+    wxBitmap andgateBitmap = wxBitmap(image);
+
+    Bitmaps[3] = wxBitmap(notgate_xpm);
+    image = Bitmaps[3].ConvertToImage();
+    image.Rescale(image.GetWidth() * 0.08, image.GetHeight() * 0.08);
+    wxBitmap notgateBitmap = wxBitmap(image);
+
+    Bitmaps[4] = wxBitmap(orgate_xpm);
+    image = Bitmaps[4].ConvertToImage();
+    image.Rescale(image.GetWidth() * 0.08, image.GetHeight() * 0.08);
+    wxBitmap orgateBitmap = wxBitmap(image);
+
+    //toolBar->AddTool(wxID_ANY + 1, _("Draw circle"), wxArtProvider::GetBitmap("wxART_WX_LOGO"));
+    toolBar->AddTool(wxID_ANY + 2, _("Draw line"), lineBitmap);
+    toolBar->AddTool(wxID_ANY + 3, _("Draw resistor"), resistorBitmap);
+    toolBar->AddTool(wxID_ANY + 4, _("Draw andgate"), andgateBitmap);
+    toolBar->AddTool(wxID_ANY + 5, _("Draw notgate"), notgateBitmap);
+    toolBar->AddTool(wxID_ANY + 6, _("Draw orgate"), orgateBitmap);
+
     //可伸展的空间
     toolBar->AddStretchableSpace();
 
@@ -115,7 +158,7 @@ Frame::Frame(wxWindow* parent,
 
 
 //Event handling
-void Frame::onNew(wxCommandEvent& event) 
+void Frame::onNew(wxCommandEvent& event)
 {
     wxMessageBox("Frame::onNew");
     PushStatusText(_("Frame::onNew"));
@@ -124,6 +167,48 @@ void Frame::onNew(wxCommandEvent& event)
 
     PopStatusText();//弹出
 }
+
+void Frame::onSave(wxCommandEvent& event) {
+    // 显示保存文件对话框
+    wxFileDialog saveFileDialog(this, "Save File", "", "", "JSON Files (*.json)|*.json", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (saveFileDialog.ShowModal() == wxID_CANCEL) {
+        return; // 用户取消
+    }
+
+    wxString filePath = saveFileDialog.GetPath();
+    std::string path(filePath.mb_str());
+
+    // 调用保存函数
+    board->SaveToJson(path);
+
+    // 模拟保存内容（你可以替换为实际文件写入逻辑）
+    wxMessageBox("File saved to: " + filePath, "Save Successful", wxOK | wxICON_INFORMATION);
+}
+
+
+void Frame::OnOpenButtonClicked(wxCommandEvent& event) {
+    wxFileDialog openFileDialog(this, _("Open JSON file"), "", "",
+        "JSON files (*.json)|*.json", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (openFileDialog.ShowModal() == wxID_CANCEL) {
+        return; // 用户取消了文件选择
+    }
+
+    wxString filePath = openFileDialog.GetPath();
+    std::string path = std::string(filePath.mb_str());
+
+    // 读取 JSON 文件
+    Json::Value root = ReadJson(path);
+    if (root.isNull()) {
+        wxLogError("无法读取或解析 JSON 文件: %s", path);
+        return;
+    }
+
+    // 将 JSON 数据传递给 Board 类的 DrawPicture 方法进行绘制
+    board->DrawPicture(root);
+}
+
 
 void Frame::onTest(wxCommandEvent& event)
 {
@@ -135,14 +220,35 @@ void Frame::onHelp(wxCommandEvent& event)
     wxMessageBox("Frame::onHelp");
 }
 
+/*
 void Frame::onCircle(wxCommandEvent& event)
 {
     board->circleClicked = true;
 }
-
+*/
 void Frame::onLine(wxCommandEvent& event)
 {
     board->lineClicked = true;
+}
+
+void Frame::onResistor(wxCommandEvent& event)
+{
+    board->resistorClicked = true;
+}
+
+void Frame::onAndGate(wxCommandEvent& event)
+{
+    board->andgateClicked = true;
+}
+
+void Frame::onNotGate(wxCommandEvent& event)
+{
+    board->notgateClicked = true;
+}
+
+void Frame::onOrGate(wxCommandEvent& event)
+{
+    board->orgateClicked = true;
 }
 
 void Frame::onQuit(wxCommandEvent& event)
@@ -167,6 +273,8 @@ void Frame::onClose(wxCloseEvent& event)
     }
     Destroy();
 }
+
+
 
 Frame::~Frame()
 {
